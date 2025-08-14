@@ -1,5 +1,6 @@
 import java.util.InputMismatchException;
 import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -8,7 +9,7 @@ public class Main {
 
         System.out.println("Latest Series - 2025");
         System.out.println("******************************************");
-
+        //main menu loop
         while (running) {
             System.out.println("\n--- Main Menu ---");
             System.out.println("1. Capture a new series");
@@ -18,11 +19,11 @@ public class Main {
             System.out.println("5. Print series report");
             System.out.println("6. Exit application");
             System.out.print("Enter your choice: ");
-
+        //reads users menu choice
             try {
                 int choice = scanner.nextInt();
                 scanner.nextLine();
-
+        //calls the required method
                 switch (choice) {
                     case 1:
                         seriesManager.CaptureSeries(scanner);
@@ -40,8 +41,8 @@ public class Main {
                         seriesManager.SeriesReport();
                         break;
                     case 6:
-                        seriesManager.ExitSeriesApplication();
                         running = false;
+                        System.out.println("Exiting application. Goodbye!");
                         break;
                     default:
                         System.out.println("Invalid choice. Please enter a number between 1 and 6.");
@@ -51,6 +52,6 @@ public class Main {
                 scanner.nextLine();
             }
         }
-        scanner.close(); // Close the scanner when the application exits.
+        scanner.close(); //closes scanner
     }
 }
