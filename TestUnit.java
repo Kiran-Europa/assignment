@@ -5,117 +5,247 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.List;
+import java.util.ArrayList;
+
+
+
+abstract class SeriesItem {
+    protected String seriesID;
+    protected String seriesName;
+    protected int ageRestriction;
+
+    public SeriesItem(String seriesID, String seriesName, int ageRestriction) {
+        this.seriesID = seriesID;
+        this.seriesName = seriesName;
+        this.ageRestriction = ageRestriction;
+    }
+
+    public String getSeriesID() {
+        return seriesID;
+    }
+
+    public String getSeriesName() {
+        return seriesName;
+    }
+
+    public void setSeriesName(String seriesName) {
+        this.seriesName = seriesName;
+    }
+
+    public int getAgeRestriction() {
+        return ageRestriction;
+    }
+
+    public void setAgeRestriction(int ageRestriction) {
+        this.ageRestriction = ageRestriction;
+    }
+
+    @Override
+    public abstract String toString();
+}
+
+class TvShow extends SeriesItem {
+    private int numberOfEpisodes;
+
+    public TvShow(String seriesID, String seriesName, int numberOfEpisodes, int ageRestriction) {
+        super(seriesID, seriesName, ageRestriction);
+        this.numberOfEpisodes = numberOfEpisodes;
+    }
+
+    public int getNumberOfEpisodes() {
+        return numberOfEpisodes;
+    }
+
+    public void setNumberOfEpisodes(int numberOfEpisodes) {
+        this.numberOfEpisodes = numberOfEpisodes;
+    }
+
+    @Override
+    public String toString() {
+        return "Series ID: " + seriesID +
+                "\nSeries Name: " + seriesName +
+                "\nSeries Type: TV Show" +
+                "\nSeries Age Restriction: " + ageRestriction +
+                "\nNumber of Episodes: " + numberOfEpisodes + "\n";
+    }
+}
+
+class Movie extends SeriesItem {
+    private int runTimeInMinutes;
+
+    public Movie(String seriesID, String seriesName, int runTimeInMinutes, int ageRestriction) {
+        super(seriesID, seriesName, ageRestriction);
+        this.runTimeInMinutes = runTimeInMinutes;
+    }
+
+    public int getRunTimeInMinutes() {
+        return runTimeInMinutes;
+    }
+
+    public void setRunTimeInMinutes(int runTimeInMinutes) {
+        this.runTimeInMinutes = runTimeInMinutes;
+    }
+
+    @Override
+    public String toString() {
+        return "Series ID: " + seriesID +
+                "\nSeries Name: " + seriesName +
+                "\nSeries Type: Movie" +
+                "\nSeries Age Restriction: " + ageRestriction +
+                "\nRun Time: " + runTimeInMinutes + " minutes" + "\n";
+    }
+}
 
 public class TestUnit {
 
     private Series seriesManager;
-    private final String NL = System.lineSeparator();
+    private final InputStream originalSystemIn = System.in;
+    private final PrintStream originalSystemOut = System.out;
     private ByteArrayOutputStream outputStream;
-    private PrintStream originalOut;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        // Create a new Series object before each test to ensure a clean state
         seriesManager = new Series();
-        originalOut = System.out;
+        // Redirect System.out to capture console output
         outputStream = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outputStream));
     }
+    private Scanner setSimulatedInput(String input) {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(input.getBytes());
+        System.setIn(inputStream);
+        return new Scanner(System.in);
+    }
 
-    @Test
-    @DisplayName("Test search for an existing series by ID")
-    void testSearchSeries_Success() {
-        // test user input to capture a series first.
-        String captureInput = "12345" + NL + "The Expanse" + NL + "60" + NL + "16" + NL;
-        seriesManager.CaptureSeries(new Scanner(new ByteArrayInputStream(captureInput.getBytes())));
-
-        // test user input to search for the series.
-        String searchInput = "12345" + NL;
-        seriesManager.SearchSeries(new Scanner(new ByteArrayInputStream(searchInput.getBytes())));
-
-        String expectedOutput = "Series found: Series ID: 12345" + NL +
-                "Series Name: The Expanse" + NL +
-                "Series Age Restriction: 16" + NL +
-                "Number of Episodes: 60" + NL;
-
-        assertTrue(outputStream.toString().contains(expectedOutput));
+    private String getOutput() {
+        return outputStream.toString().replace("\r", "");
     }
 
     @Test
-    @DisplayName("Test search for a non-existent series")
-    void testSearchSeries_NotFound() {
-        // test user input to search for a series that hasn't been added.
-        String searchInput = "NONEXISTENT" + NL;
-        seriesManager.SearchSeries(new Scanner(new ByteArrayInputStream(searchInput.getBytes())));
+    @DisplayName("Test CaptureSeries for a TV show")
+    void testCaptureSeries_TvShow() {
+        String input = "TV101\nBreaking Bad\nT\n18\n62\n";
+        Scanner scanner = setSimulatedInput(input);
 
-        String expectedOutput = "Series with ID 'NONEXISTENT' not found.";
-        assertTrue(outputStream.toString().contains(expectedOutput));
+        seriesManager.CaptureSeries(scanner);
+
+        seriesManager.SearchSeries(setSimulatedInput("TV101\n"));
+        String output = getOutput();
+
+        assertTrue(output.contains("Series found:"));
+        assertTrue(output.contains("Series Name: Breaking Bad"));
+        assertTrue(output.contains("Series Type: TV Show"));
+        assertTrue(output.contains("Number of Episodes: 62"));
     }
 
     @Test
-    @DisplayName("Test updating an existing series's name")
-    void testUpdateSeries_Success() {
-        // Capture a series.
-        String captureInput = "54321" + NL + "Old Name" + NL + "10" + NL + "13" + NL;
-        seriesManager.CaptureSeries(new Scanner(new ByteArrayInputStream(captureInput.getBytes())));
+    @DisplayName("Test CaptureSeries for a movie")
+    void testCaptureSeries_Movie() {
+        String input = "M202\nThe Matrix\nM\n16\n136\n";
+        Scanner scanner = setSimulatedInput(input);
 
-        // test input to update the series name.
-        String updateInput = "54321" + NL + "New Name" + NL + NL + NL; // New name, then skip episodes and age restriction
-        seriesManager.UpdateSeries(new Scanner(new ByteArrayInputStream(updateInput.getBytes())));
+        seriesManager.CaptureSeries(scanner);
 
-        // Search for the series to verify the update.
-        seriesManager.SearchSeries(new Scanner(new ByteArrayInputStream(("54321" + NL).getBytes())));
+        seriesManager.SearchSeries(setSimulatedInput("M202\n"));
+        String output = getOutput();
 
-        String expectedOutput = "Series Name: New Name";
-        assertTrue(outputStream.toString().contains(expectedOutput));
+        assertTrue(output.contains("Series found:"));
+        assertTrue(output.contains("Series Name: The Matrix"));
+        assertTrue(output.contains("Series Type: Movie"));
+        assertTrue(output.contains("Run Time: 136 minutes"));
     }
 
     @Test
-    @DisplayName("Test deleting a series with 'Y' confirmation")
-    void testDeleteSeries_Success() {
-        // Capture a series to be deleted.
-        String captureInput = "DELETE_ME" + NL + "Series to Delete" + NL + "5" + NL + "18" + NL;
-        seriesManager.CaptureSeries(new Scanner(new ByteArrayInputStream(captureInput.getBytes())));
+    @DisplayName("Test SearchSeries for an existing series")
+    void testSearchSeries_Existing() {
+        // First capture a series to ensure it exists
+        String captureInput = "TV101\nBreaking Bad\nT\n18\n62\n";
+        seriesManager.CaptureSeries(setSimulatedInput(captureInput));
 
-        // test input for deletion with 'Y'.
-        String deleteInput = "DELETE_ME" + NL + "Y" + NL;
-        seriesManager.DeleteSeries(new Scanner(new ByteArrayInputStream(deleteInput.getBytes())));
+        // Then search for it
+        String searchInput = "TV101\n";
+        Scanner scanner = setSimulatedInput(searchInput);
+        seriesManager.SearchSeries(scanner);
 
-        // Try to search for the deleted series to confirm it's gone.
-        seriesManager.SearchSeries(new Scanner(new ByteArrayInputStream(("DELETE_ME" + NL).getBytes())));
-
-        String expectedOutput = "Series with ID 'DELETE_ME' not found.";
-        assertTrue(outputStream.toString().contains(expectedOutput));
+        String output = getOutput();
+        assertTrue(output.contains("Series found:"));
+        assertTrue(output.contains("Series Name: Breaking Bad"));
     }
 
     @Test
-    @DisplayName("Test deleting a non-existent series")
-    void testDeleteSeries_NotFound() {
-        // test input to delete a series that was never captured.
-        String deleteInput = "GHOST_SERIES" + NL + "Y" + NL; // The 'Y' is ignored if the series isn't found
-        seriesManager.DeleteSeries(new Scanner(new ByteArrayInputStream(deleteInput.getBytes())));
+    @DisplayName("Test SearchSeries for a non-existent series")
+    void testSearchSeries_NonExistent() {
+        String input = "NONEXISTENT\n";
+        Scanner scanner = setSimulatedInput(input);
+        seriesManager.SearchSeries(scanner);
 
-        String expectedOutput = "Series with ID 'GHOST_SERIES' not found.";
-        assertTrue(outputStream.toString().contains(expectedOutput));
+        String output = getOutput();
+        assertTrue(output.contains("Series with ID 'NONEXISTENT' not found."));
     }
 
     @Test
-    @DisplayName("Test updating a series with a valid age restriction")
-    void testUpdateAgeRestriction_Valid() {
-        // Capture a series.
-        String captureInput = "AGE_TEST" + NL + "Age Test Show" + NL + "1" + NL + "10" + NL;
-        seriesManager.CaptureSeries(new Scanner(new ByteArrayInputStream(captureInput.getBytes())));
+    @DisplayName("Test UpdateSeries details")
+    void testUpdateSeries_Details() {
+        // First capture a series
+        String captureInput = "TV101\nBreaking Bad\nT\n18\n62\n";
+        seriesManager.CaptureSeries(setSimulatedInput(captureInput));
 
-        // test input to update the age restriction.
-        String updateInput = "AGE_TEST" + NL + NL + NL + "18" + NL; // Skip name and episodes, update age
-        seriesManager.UpdateSeries(new Scanner(new ByteArrayInputStream(updateInput.getBytes())));
+        // Simulate updates: new name, new episodes, new age restriction
+        String updateInput = "TV101\nBetter Call Saul\n90\n16\n";
+        Scanner scanner = setSimulatedInput(updateInput);
+        seriesManager.UpdateSeries(scanner);
 
-        // Search for the series to verify the age update.
-        seriesManager.SearchSeries(new Scanner(new ByteArrayInputStream(("AGE_TEST" + NL).getBytes())));
+        // Search for the updated series to verify the changes
+        seriesManager.SearchSeries(setSimulatedInput("TV101\n"));
+        String output = getOutput();
 
-        String expectedOutput = "Series Age Restriction: 18";
-        assertTrue(outputStream.toString().contains(expectedOutput));
+        assertTrue(output.contains("Series Name: Better Call Saul"));
+        assertTrue(output.contains("Number of Episodes: 90"));
+        assertTrue(output.contains("Series Age Restriction: 16"));
+    }
 
+    @Test
+    @DisplayName("Test DeleteSeries with confirmation 'Y'")
+    void testDeleteSeries_Confirmed() {
+        // Capture a series
+        String captureInput = "M202\nThe Matrix\nM\n16\n136\n";
+        seriesManager.CaptureSeries(setSimulatedInput(captureInput));
+
+        // Delete it with 'Y' confirmation
+        String deleteInput = "M202\nY\n";
+        Scanner scanner = setSimulatedInput(deleteInput);
+        seriesManager.DeleteSeries(scanner);
+
+        // Try to search for it, should not be found
+        seriesManager.SearchSeries(setSimulatedInput("M202\n"));
+        String output = getOutput();
+
+        assertTrue(output.contains("Series 'The Matrix' deleted successfully."));
+        assertTrue(output.contains("Series with ID 'M202' not found."));
+    }
+
+    @Test
+    @DisplayName("Test SeriesReport with captured series")
+    void testSeriesReport() {
+        // Capture a TV show
+        String captureTvShowInput = "TV101\nBreaking Bad\nT\n18\n62\n";
+        seriesManager.CaptureSeries(setSimulatedInput(captureTvShowInput));
+
+        // Capture a movie
+        String captureMovieInput = "M202\nThe Matrix\nM\n16\n136\n";
+        seriesManager.CaptureSeries(setSimulatedInput(captureMovieInput));
+
+        seriesManager.SeriesReport();
+        String output = getOutput();
+
+        assertTrue(output.contains("--- Series Report ---"));
+        assertTrue(output.contains("Series Name: Breaking Bad"));
+        assertTrue(output.contains("Number of Episodes: 62"));
+        assertTrue(output.contains("Series Name: The Matrix"));
+        assertTrue(output.contains("Run Time: 136 minutes"));
     }
 }
