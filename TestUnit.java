@@ -8,97 +8,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
-import java.util.List;
-import java.util.ArrayList;
-
-
-
-abstract class SeriesItem {
-    protected String seriesID;
-    protected String seriesName;
-    protected int ageRestriction;
-
-    public SeriesItem(String seriesID, String seriesName, int ageRestriction) {
-        this.seriesID = seriesID;
-        this.seriesName = seriesName;
-        this.ageRestriction = ageRestriction;
-    }
-
-    public String getSeriesID() {
-        return seriesID;
-    }
-
-    public String getSeriesName() {
-        return seriesName;
-    }
-
-    public void setSeriesName(String seriesName) {
-        this.seriesName = seriesName;
-    }
-
-    public int getAgeRestriction() {
-        return ageRestriction;
-    }
-
-    public void setAgeRestriction(int ageRestriction) {
-        this.ageRestriction = ageRestriction;
-    }
-
-    @Override
-    public abstract String toString();
-}
-
-class TvShow extends SeriesItem {
-    private int numberOfEpisodes;
-
-    public TvShow(String seriesID, String seriesName, int numberOfEpisodes, int ageRestriction) {
-        super(seriesID, seriesName, ageRestriction);
-        this.numberOfEpisodes = numberOfEpisodes;
-    }
-
-    public int getNumberOfEpisodes() {
-        return numberOfEpisodes;
-    }
-
-    public void setNumberOfEpisodes(int numberOfEpisodes) {
-        this.numberOfEpisodes = numberOfEpisodes;
-    }
-
-    @Override
-    public String toString() {
-        return "Series ID: " + seriesID +
-                "\nSeries Name: " + seriesName +
-                "\nSeries Type: TV Show" +
-                "\nSeries Age Restriction: " + ageRestriction +
-                "\nNumber of Episodes: " + numberOfEpisodes + "\n";
-    }
-}
-
-class Movie extends SeriesItem {
-    private int runTimeInMinutes;
-
-    public Movie(String seriesID, String seriesName, int runTimeInMinutes, int ageRestriction) {
-        super(seriesID, seriesName, ageRestriction);
-        this.runTimeInMinutes = runTimeInMinutes;
-    }
-
-    public int getRunTimeInMinutes() {
-        return runTimeInMinutes;
-    }
-
-    public void setRunTimeInMinutes(int runTimeInMinutes) {
-        this.runTimeInMinutes = runTimeInMinutes;
-    }
-
-    @Override
-    public String toString() {
-        return "Series ID: " + seriesID +
-                "\nSeries Name: " + seriesName +
-                "\nSeries Type: Movie" +
-                "\nSeries Age Restriction: " + ageRestriction +
-                "\nRun Time: " + runTimeInMinutes + " minutes" + "\n";
-    }
-}
 
 public class TestUnit {
 
@@ -115,6 +24,7 @@ public class TestUnit {
         outputStream = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outputStream));
     }
+
     private Scanner setSimulatedInput(String input) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(input.getBytes());
         System.setIn(inputStream);
